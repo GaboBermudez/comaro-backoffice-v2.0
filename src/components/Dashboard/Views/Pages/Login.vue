@@ -12,13 +12,13 @@
                   <h3 slot="header" class="header text-center">Iniciar sesión</h3>
 
                   <fg-input
-                    v-model="form.username"
+                    v-model="email"
                     addon-left-icon="nc-icon nc-single-02"
-                    placeholder="Usuario"
+                    placeholder="Email"
                   ></fg-input>
 
                   <fg-input
-                    v-model="form.password"
+                    v-model="password"
                     addon-left-icon="nc-icon nc-key-25"
                     placeholder="Contraseña"
                     type="password"
@@ -34,6 +34,7 @@
                     block
                     class="mb-3"
                   >Ingresar</p-button>
+                  <div class="error">{{ error }}</div>
                 </card>
               </form>
             </div>
@@ -52,6 +53,9 @@
 import { Card, Checkbox, Button } from "src/components/UIComponents";
 import AppNavbar from "./Layout/AppNavbar";
 import AppFooter from "./Layout/AppFooter";
+import errorMessages from "src/firebase/errorCodesMap";
+import * as firebase from "firebase/app";
+import "firebase/auth";
 
 export default {
   components: {
@@ -67,21 +71,43 @@ export default {
       document.body.classList.remove("off-canvas-sidebar");
     },
     login() {
-      this.$router.push("/");
+      try {
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(this.email, this.password)
+          .then(
+            user => {
+              console.log(user);
+              this.$router.push("/");
+            },
+            err => {
+              this.error = errorMessages.auth[err.code];
+            }
+          );
+      } catch (err) {
+        console.log(err);
+      }
     }
   },
   data() {
     return {
-      form: {
-        username: "",
-        password: ""
-      }
+      email: "",
+      password: "",
+      error: ""
     };
+  },
+  created() {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) this.$router.push({ name: "Cotizaciones" });
+    });
   },
   beforeDestroy() {
     this.closeMenu();
   }
 };
 </script>
-<style>
+<style lang="scss">
+.error {
+  color: $color-red-error;
+}
 </style>

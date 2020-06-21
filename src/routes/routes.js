@@ -34,12 +34,14 @@ let cotizacionesPage = {
     {
       path: "/",
       name: "Cotizaciones",
-      component: CotizacionesTable
+      component: CotizacionesTable,
+      meta: { requiresAuth: true }
     },
     {
       path: "form/:id?",
       name: "Cotizacion Form",
-      component: CotizacionForm
+      component: CotizacionForm,
+      meta: { requiresAuth: true }
     }
   ]
 };
@@ -59,17 +61,20 @@ const routes = [
       {
         path: "clientes",
         name: "Clientes",
-        component: ClientesTable
+        component: ClientesTable,
+        meta: { requiresAuth: true }
       },
       {
         path: "contactos",
         name: "Contactos",
-        component: ContactosTable
+        component: ContactosTable,
+        meta: { requiresAuth: true }
       },
       {
         path: "cuenta",
         name: "Cuenta",
-        component: User
+        component: User,
+        meta: { requiresAuth: true }
       }
     ]
   },

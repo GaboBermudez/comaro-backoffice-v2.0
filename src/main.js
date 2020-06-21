@@ -5,6 +5,9 @@ import VueRouterPrefetch from "vue-router-prefetch";
 import VueNotify from "vue-notifyjs";
 import lang from "element-ui/lib/locale/lang/en";
 import locale from "element-ui/lib/locale";
+import axios from "axios";
+import firebase from "firebase/app";
+import firebaseConfig from "src/firebase/firebaseConfig";
 import App from "./App.vue";
 
 // Plugins
@@ -30,6 +33,9 @@ import { Breadcrumb, BreadcrumbItem } from "element-ui";
 Vue.use(Breadcrumb);
 Vue.use(BreadcrumbItem);
 
+// axios
+Vue.prototype.$axios = axios;
+
 // plugin setup
 Vue.use(VueRouter);
 Vue.use(VueRouterPrefetch);
@@ -52,11 +58,33 @@ const router = new VueRouter({
   }
 });
 
+// router middleware
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const isAuthenticated = firebase.auth().currentUser;
+
+  if (requiresAuth && !isAuthenticated) {
+    next("/login");
+  } else {
+    next();
+  }
+});
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
 initProgress(router);
 
-/* eslint-disable no-new */
-new Vue({
-  el: "#app",
-  render: h => h(App),
-  router
+let app;
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!app) {
+    new Vue({
+      el: "#app",
+      render: h => h(App),
+      router
+    });
+  }
 });
+
+/* eslint-disable no-new */

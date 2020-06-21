@@ -16,7 +16,7 @@
     <template slot="navbar-menu">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="#">
+          <a class="nav-link logout" @click="logout()">
             Cerrar Sesión
             <i class="fa fa-sign-out" />
           </a>
@@ -27,6 +27,8 @@
 </template>
 <script>
 import { Navbar, NavbarToggleButton } from "src/components/UIComponents";
+import * as firebase from "firebase/app";
+import "firebase/auth";
 
 export default {
   components: {
@@ -40,29 +42,34 @@ export default {
     };
   },
   methods: {
-    capitalizeFirstLetter(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    },
-    toggleNotificationDropDown() {
-      this.activeNotifications = !this.activeNotifications;
-    },
-    closeDropDown() {
-      this.activeNotifications = false;
-    },
     toggleSidebar() {
       this.$sidebar.displaySidebar(!this.$sidebar.showSidebar);
-    },
-    hideSidebar() {
-      this.$sidebar.displaySidebar(false);
     },
     minimizeSidebar() {
       this.$sidebar.toggleMinimize();
     },
-    toggleNavbar() {
-      this.showNavbar = !this.showNavbar;
+    logout() {
+      try {
+        firebase
+          .auth()
+          .signOut()
+          .then(
+            value => {
+              this.$router.push({ name: "Login" });
+            },
+            err => {
+              console.log(err);
+            }
+          );
+      } catch (err) {
+        console.log(err);
+      }
     }
   }
 };
 </script>
 <style>
+.logout {
+  cursor: pointer !important;
+}
 </style>

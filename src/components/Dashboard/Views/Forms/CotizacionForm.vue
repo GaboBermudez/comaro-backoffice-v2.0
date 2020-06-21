@@ -154,8 +154,10 @@
             <label>Precio incluye:</label>
             <p-checkbox>M.O y cargas sociales</p-checkbox>
             <p-checkbox>Materiales</p-checkbox>
-            <p-checkbox v-model="incluyeOtros">Otros</p-checkbox>
-            <fg-input :class="['otros-incluye', incluyeOtros ? '' : 'visibility-hidden']"></fg-input>
+            <p-checkbox v-model="cotizacion.incluyeOtros">Otros</p-checkbox>
+            <fg-input
+              :class="['otros-incluye', cotizacion.incluyeOtros ? '' : 'visibility-hidden']"
+            ></fg-input>
           </div>
           <div class="form-group plazo-entrega">
             <label>Plazo de entrega</label>
@@ -164,8 +166,21 @@
           <div class="form-group forma-pago">
             <label>Forma de pago:</label>
             <p-checkbox>El usual</p-checkbox>
-            <p-checkbox v-model="otrosFormaPago">Otro</p-checkbox>
-            <fg-input :class="['otros-forma-pago', otrosFormaPago ? '' : 'visibility-hidden']"></fg-input>
+            <p-checkbox v-model="cotizacion.otrosFormaPago">Otro</p-checkbox>
+            <fg-input
+              :class="['otros-forma-pago', cotizacion.otrosFormaPago ? '' : 'visibility-hidden']"
+            ></fg-input>
+          </div>
+        </div>
+        <div class="notas-adicionales">
+          <div class="form-group">
+            <label>Notas adicionales</label>
+            <textarea
+              rows="10"
+              class="form-control border-input"
+              placeholder="Notas adicionales"
+              v-model="cotizacion.notasAdicionales"
+            ></textarea>
           </div>
         </div>
         <div class="button-container">
@@ -219,7 +234,10 @@ export default {
       cotizacion: {
         contacto: "",
         cliente: "",
-        moneda: "¢"
+        moneda: "¢",
+        incluyeOtros: false,
+        otrosFormaPago: false,
+        notasAdicionales: ""
       },
       lineas: [
         {
@@ -247,9 +265,7 @@ export default {
         descuento: 0,
         iva: true
       },
-      lineasId: 0,
-      incluyeOtros: false,
-      otrosFormaPago: false
+      lineasId: 0
     };
   },
   computed: {
@@ -424,6 +440,11 @@ td {
 .notas > div {
   flex: 1;
   padding-right: 50px;
+}
+
+.notas-adicionales {
+  width: 30%;
+  margin-bottom: 50px;
 }
 
 .precio-unitario-linea {
