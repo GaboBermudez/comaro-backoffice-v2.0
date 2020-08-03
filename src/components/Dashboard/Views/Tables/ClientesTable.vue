@@ -6,7 +6,7 @@
     <div class="col-md-12 card">
       <div class="card-body row">
         <div class="col-sm-6">
-          <p-button type="success" @click="showModal = true">
+          <p-button type="success" @click="handleShowModal">
             <i slot="label" class="nc-icon nc-simple-add"></i>
             Nuevo cliente
           </p-button>
@@ -68,17 +68,25 @@
         </div>
       </div>
     </div>
-    <Modal :show.sync="showModal" headerClasses="justify-content-center" :showClose="false">
+    <Modal :show.sync="showSaveModal" headerClasses="justify-content-center" :showClose="false">
       <h4 slot="header" class="title title-up">Agregar cliente</h4>
-      <form @submit.prevent="agregarCliente()">
+      <form @submit.prevent="handleGuardarCliente">
         <div class="form-group">
           <label>Nombre del cliente</label>
           <fg-input name="nombreCliente" v-model="nuevoCliente.nombre" type="text"></fg-input>
         </div>
       </form>
       <template slot="footer">
-        <p-button type="danger" @click="showModal = false">Cancelar</p-button>
-        <p-button native-type="submit" type="success">Guardar</p-button>
+        <p-button type="danger" @click="handleCancelGuardarCliente">Cancelar</p-button>
+        <p-button native-type="submit" @click="handleGuardarCliente" type="success">Guardar</p-button>
+      </template>
+    </Modal>
+    <Modal :show.sync="showDeleteModal" headerClasses="justify-content-center" :showClose="false">
+      <h4 slot="header" class="title title-up">Eliminar Cliente</h4>
+      ¿Está seguro que desea eliminar a {{clienteSeleccionado.nombre}}?
+      <template slot="footer">
+        <p-button @click="handleShowDeleteModal">Cancelar</p-button>
+        <p-button native-type="submit" @click="handleDeleteCliente" type="danger">Eliminar</p-button>
       </template>
     </Modal>
   </div>
@@ -87,10 +95,13 @@
 import Vue from "vue";
 import { Table, TableColumn, Select, Option } from "element-ui";
 import { Modal, Button, Pagination } from "src/components/UIComponents";
+import { mapActions, mapState } from "vuex";
+import { cloneDeep } from "lodash";
 Vue.use(Table);
 Vue.use(TableColumn);
 Vue.use(Select);
 Vue.use(Option);
+
 export default {
   components: {
     [Pagination.name]: Pagination,
@@ -98,7 +109,29 @@ export default {
     Modal
   },
 
+  data() {
+    return {
+      pagination: {
+        perPage: 25,
+        currentPage: 1,
+        perPageOptions: [5, 10, 25, 50],
+        total: 0
+      },
+      searchQuery: "",
+      propsToSearch: ["nombre"],
+      showSaveModal: false,
+      showDeleteModal: false,
+      nuevoCliente: { nombre: "" },
+      clienteSeleccionado: { nombre: "" },
+      editing: false,
+      clienteSeleccionadoIndex: -1
+    };
+  },
+
   computed: {
+    ...mapState("clientes", {
+      tableData: "all"
+    }),
     pagedData() {
       return this.tableData.slice(this.from, this.to);
     },
@@ -142,54 +175,68 @@ export default {
     }
   },
 
-  data() {
-    return {
-      pagination: {
-        perPage: 25,
-        currentPage: 1,
-        perPageOptions: [5, 10, 25, 50],
-        total: 0
-      },
-      searchQuery: "",
-      propsToSearch: ["nombre"],
-      tableData: [
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." },
-        { nombre: "Grupo Agroindustrial Numar S.A." }
-      ],
-      showModal: false,
-      nuevoCliente: { nombre: "" }
-    };
-  },
-
   methods: {
-    handleEdit(index, row) {
-      alert(`Your want to edit ${row.name}`);
-    },
-    handleDelete(index, row) {
-      let indexToDelete = this.tableData.findIndex(
-        tableRow => tableRow.id === row.id
-      );
-      if (indexToDelete >= 0) {
-        this.tableData.splice(indexToDelete, 1);
-      }
-    },
-    handleShowModal() {
-      this.showModal = true;
-    },
-    agregarCliente() {
-      this.tableData.unshift(this.nuevoCliente);
-      this.showModal = false;
+    ...mapActions("clientes", [
+      "agregarCliente",
+      "editarCliente",
+      "eliminarCliente"
+    ]),
+
+    clearClientesTemp() {
+      this.clienteSeleccionado = {};
+      this.clienteSeleccionadoIndex = "";
       this.nuevoCliente = {};
+    },
+
+    handleCancelGuardarCliente() {
+      this.clearClientesTemp();
+      this.handleShowModal();
+    },
+
+    handleEdit(index, row) {
+      this.editing = true;
+      this.nuevoCliente = cloneDeep(row);
+      this.clienteSeleccionadoIndex = index;
+      this.handleShowModal();
+    },
+
+    handleDelete(index, row) {
+      this.clienteSeleccionado = row;
+      this.clienteSeleccionadoIndex = index;
+      this.handleShowDeleteModal();
+    },
+
+    handleShowModal() {
+      this.showSaveModal = !this.showSaveModal;
+    },
+
+    handleShowDeleteModal() {
+      this.showDeleteModal = !this.showDeleteModal;
+    },
+
+    handleDeleteCliente() {
+      this.eliminarCliente(this.clienteSeleccionadoIndex);
+      this.handleShowDeleteModal();
+      this.$notify({
+        type: "success",
+        message: `${this.clienteSeleccionado.nombre} eliminado exitosamente`
+      });
+      this.clearClientesTemp();
+    },
+
+    handleGuardarCliente() {
+      if (this.editing) {
+        this.editarCliente({
+          clienteSeleccionadoIndex: this.clienteSeleccionadoIndex,
+          nuevoCliente: this.nuevoCliente
+        });
+        this.clienteSeleccionado = {};
+        this.editing = false;
+      } else {
+        this.agregarCliente(this.nuevoCliente);
+      }
+      this.nuevoCliente = {};
+      this.handleShowModal();
     }
   }
 };

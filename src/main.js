@@ -30,6 +30,9 @@ import "./registerServiceWorker";
 // breadcrumbs
 import { Breadcrumb, BreadcrumbItem } from "element-ui";
 
+// store
+import store from "./store";
+
 Vue.use(Breadcrumb);
 Vue.use(BreadcrumbItem);
 
@@ -82,7 +85,8 @@ firebase.auth().onAuthStateChanged(user => {
     new Vue({
       el: "#app",
       render: h => h(App),
-      router
+      router,
+      store
     });
   }
 });

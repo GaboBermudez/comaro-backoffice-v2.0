@@ -12,6 +12,7 @@ module.exports = {
         "chart.js": "chart.js/dist/Chart.js"
       }
     },
+    devtool: "source-map",
     plugins: [
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 6
